@@ -15,53 +15,40 @@ direction	0 - mirror left to right
 			1 - mirror right to left
 			2 - mirror top to bottom
 			3 - mirror bottom to top
-return		output image
-*/
-Mat Dip1::splitImage(Mat& img, int direction){
 
-  	Mat newImg = Mat::zeros( img.size(), img.type() );
+referenced to the original image
+*/
+void Dip1::splitImage(Mat& img, int direction){
 
   	int yMid = floor(img.rows/2.0);
   	int xMid = floor(img.cols/2.0);
-
+	
   	switch(direction){
   		case 0:
   			for( int y = 0; y < img.rows; y++ ){
 		  		for( int x = 0; x <= xMid; x++ ){
-		  			for( int c = 0; c < 3; c++ ){
-		  				newImg.at<Vec3b>(y,x)[c] = img.at<Vec3b>(y,x)[c];
-						newImg.at<Vec3b>(y,img.cols-x)[c] = img.at<Vec3b>(y,x)[c];
-					}
+						img.at<Vec3b>(y, img.cols-x) = img.at<Vec3b>(y,x);
 				}
 			}
   			break;
   		case 1:
   			for( int y = 0; y < img.rows; y++ ){
 		  		for( int x = img.cols-1; x >= xMid; x-- ){
-		  			for( int c = 0; c < 3; c++ ){
-		  				newImg.at<Vec3b>(y,x)[c] = img.at<Vec3b>(y,x)[c];
-						newImg.at<Vec3b>(y,img.cols-x)[c] = img.at<Vec3b>(y,x)[c];
-					}
+						img.at<Vec3b>(y, img.cols-x) = img.at<Vec3b>(y,x);
 				}
 			}
   			break;
   		case 2:
   			for( int y = 0; y <= yMid; y++ ){
 		  		for( int x = 0; x < img.cols; x++ ){
-		  			for( int c = 0; c < 3; c++ ){
-		  				newImg.at<Vec3b>(y 			,x)[c] = img.at<Vec3b>(y,x)[c];
-						newImg.at<Vec3b>(img.rows-y	,x)[c] = img.at<Vec3b>(y,x)[c];
-					}
+						img.at<Vec3b>(img.rows-y, x) = img.at<Vec3b>(y,x);
 				}
 			}
   			break;
   		case 3:
   			for( int y = img.rows-1; y >= yMid; y-- ){
 		  		for( int x = 0; x < img.cols; x++ ){
-		  			for( int c = 0; c < 3; c++ ){
-		  				newImg.at<Vec3b>(y 			,x)[c] = img.at<Vec3b>(y,x)[c];
-						newImg.at<Vec3b>(img.rows-y	,x)[c] = img.at<Vec3b>(y,x)[c];
-					}
+						img.at<Vec3b>(img.rows-y, x) = img.at<Vec3b>(y,x);
 				}
 			}
   			break;	
@@ -71,9 +58,7 @@ Mat Dip1::splitImage(Mat& img, int direction){
 			cout << "\t1 - mirror right to left" << endl;
 			cout << "\t2 - mirror top to bottom" << endl;
 			cout << "\t3 - mirror bottom to top" << endl;
-			return img;
   	}	
-  	return newImg;
 }
 
 // function that performs some kind of (simple) image processing
@@ -83,11 +68,23 @@ return	output image
 */
 Mat Dip1::doSomethingThatMyTutorIsGonnaLike(Mat& img){
 
-  	Mat newImg = Mat::zeros( img.size(), img.type() );
+  	Mat newImg = img.clone();
   	
-  	newImg = splitImage(img, 0);
-  	newImg = splitImage(newImg, 3);
-  	
+  	splitImage(newImg, 0);
+  	splitImage(newImg, 3);	
+
+	//increase image contrast 
+	/// Do the operation new_image(i,j) = alpha*image(i,j) + beta
+	float alpha = 1.2;
+	int beta = 50;
+	for( int y = 0; y < newImg.rows; y++ ){
+		for( int x = 0; x < newImg.cols; x++ ){ 
+			for( int c = 0; c < 3; c++ ){
+				newImg.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( alpha*( newImg.at<Vec3b>(y,x)[c] ) + beta ); 
+			}
+		}
+	}
+
   	return newImg;
 }
 

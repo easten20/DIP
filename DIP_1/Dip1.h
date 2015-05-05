@@ -28,7 +28,7 @@ class Dip1{
 	private:
 		// function that performs some kind of (simple) image processing
 		// --> edit ONLY this function!
-		Mat splitImage(Mat&, int);
+		void splitImage(Mat&, int);
 		Mat doSomethingThatMyTutorIsGonnaLike(Mat&);
 
 		// test function
