@@ -18,7 +18,7 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
 
    // TO DO !!
 	Mat outputImage = src.clone();
-	outputImage.zeros(src.size, src.type());
+	//outputImage.zeros(src.size(), src.type());
 
 	//cout << src.rows << "/" << src.cols << endl;
 
@@ -56,10 +56,8 @@ kSize:   window size used by local average
 return:  filtered image
 */
 Mat Dip2::averageFilter(Mat& src, int kSize){
-  
-   // TO DO !!
-   return src.clone();
-
+ Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
+return spatialConvolution(src, kernel);
 }
 
 // the adaptive filter
@@ -71,7 +69,7 @@ threshold:  threshold value on differences in order to decide which average to u
 return:     filtered image
 */
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
-   int local_kSize = 3;
+/*   int local_kSize = 3;
    Mat mat_local_avg = averageFilter(src, 3);
    Mat mat_avg = averageFilter(src, kSize);
 	
@@ -88,7 +86,7 @@ Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
    return spatialConvolution(src, kernel);
    // TO DO !!
    return src.clone();
-
+*/
 }
 
 // the median filter
@@ -152,8 +150,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "average", 1);
-	Mat restorated2 = noiseReduction(noise2, "median", 1);
+	Mat restorated1 = noiseReduction(noise1, "average", 5);
+	Mat restorated2 = noiseReduction(noise2, "median", 3);
 	cout << "done" << endl;
 	  
 	// save images
