@@ -69,24 +69,22 @@ threshold:  threshold value on differences in order to decide which average to u
 return:     filtered image
 */
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
-/*   int local_kSize = 3;
+   int local_kSize = 3;
    Mat mat_local_avg = averageFilter(src, 3);
    Mat mat_avg = averageFilter(src, kSize);
 	
-   Mat dst = Mat::zeroes( src.size(), src.type() ); 
+   Mat dst = Mat::zeros( src.size(), src.type() ); 
    for (int x = 0; x < src.cols; x++){
 	for (int y = 0; y < src.rows; y++){	
-		for (int c = 0, c < src.channels(); c++){
-			if (mat_local_avg.at<Vec3b>(y,x)[c] - mat_avg.at<Vec3b>(y,x);
-		}
+			if (mat_local_avg.at<float>(y,x) - mat_avg.at<float>(y,x) < threshold)
+				dst.at<float>(y,x) = mat_avg.at<float>(y,x);
+			else
+				dst.at<float>(y,x) = mat_local_avg.at<float>(y,x);
 	} 
    }
      
-   Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
-   return spatialConvolution(src, kernel);
+   return dst;
    // TO DO !!
-   return src.clone();
-*/
 }
 
 // the median filter
@@ -151,7 +149,7 @@ void Dip2::run(void){
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
 	Mat restorated1 = noiseReduction(noise1, "average", 5);
-	Mat restorated2 = noiseReduction(noise2, "median", 3);
+	Mat restorated2 = noiseReduction(noise2, "adaptive", 9);
 	cout << "done" << endl;
 	  
 	// save images
