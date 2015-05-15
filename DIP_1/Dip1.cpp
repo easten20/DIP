@@ -117,7 +117,7 @@ void Dip1::run(string fname){
 	    cin.get();
 	    exit(-1);
 	}
-
+	
 	// show input image
 	namedWindow( win1.c_str() );
 	imshow( win1.c_str(), inputImage );
@@ -174,7 +174,7 @@ outputImage	output image as created by doSomethingThatMyTutorIsGonnaLike()
 void Dip1::test_doSomethingThatMyTutorIsGonnaLike(Mat& inputImage, Mat& outputImage){
 
 	// ensure that input and output have equal number of channels
-	if ( (inputImage.channels() == 3) and (outputImage.channels() == 1) )
+	if ( (inputImage.channels() == 3) && (outputImage.channels() == 1) )
 		cvtColor(inputImage, inputImage, CV_BGR2GRAY);
 
 	// split (multi-channel) image into planes

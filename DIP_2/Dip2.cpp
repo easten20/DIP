@@ -7,8 +7,6 @@
 //============================================================================
 
 #include "Dip2.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 // convolution in spatial domain
 /*
 src:     input image
@@ -22,9 +20,6 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
     namedWindow("filter2D", CV_WINDOW_AUTOSIZE);
     imshow( "filter2D Demo", dst);  
     return dst;
-   // TO DO !!
-//   return src.clone();
-
 }
 
 // the average filter
@@ -35,8 +30,6 @@ kSize:   window size used by local average
 return:  filtered image
 */
 Mat Dip2::averageFilter(Mat& src, int kSize){
-  
-   /// Update kernel size for a normalized box filter
    Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
    return spatialConvolution(src, kernel);
 
@@ -251,13 +244,13 @@ void Dip2::test_spatialConvolution(void){
       cout << "ERROR: Dip2::spatialConvolution(): input.size != output.size --> Wrong border handling?" << endl;
       return;
    }
-  if ( (sum(output.row(0) < 0).val[0] > 0) or
-           (sum(output.row(0) > 255).val[0] > 0) or
-           (sum(output.row(8) < 0).val[0] > 0) or
-           (sum(output.row(8) > 255).val[0] > 0) or
-           (sum(output.col(0) < 0).val[0] > 0) or
-           (sum(output.col(0) > 255).val[0] > 0) or
-           (sum(output.col(8) < 0).val[0] > 0) or
+  if ( (sum(output.row(0) < 0).val[0] > 0) ||
+           (sum(output.row(0) > 255).val[0] > 0) ||
+           (sum(output.row(8) < 0).val[0] > 0) ||
+           (sum(output.row(8) > 255).val[0] > 0) ||
+           (sum(output.col(0) < 0).val[0] > 0) ||
+           (sum(output.col(0) > 255).val[0] > 0) ||
+           (sum(output.col(8) < 0).val[0] > 0) ||
            (sum(output.col(8) > 255).val[0] > 0) ){
          cout << "ERROR: Dip2::spatialConvolution(): Border of convolution result contains too large/small values --> Wrong border handling?" << endl;
          return;
@@ -313,18 +306,18 @@ void Dip2::test_averageFilter(void){
       cout << "ERROR: Dip2::averageFilter(): input.size != output.size --> Wrong border handling?" << endl;
       return;
    }
-  if ( (sum(output.row(0) < 0).val[0] > 0) or
-           (sum(output.row(0) > 255).val[0] > 0) or
-           (sum(output.row(8) < 0).val[0] > 0) or
-           (sum(output.row(8) > 255).val[0] > 0) or
-           (sum(output.col(0) < 0).val[0] > 0) or
-           (sum(output.col(0) > 255).val[0] > 0) or
-           (sum(output.col(8) < 0).val[0] > 0) or
+  if ( (sum(output.row(0) < 0).val[0] > 0) ||
+           (sum(output.row(0) > 255).val[0] > 0) ||
+           (sum(output.row(8) < 0).val[0] > 0) ||
+           (sum(output.row(8) > 255).val[0] > 0) ||
+           (sum(output.col(0) < 0).val[0] > 0) ||
+           (sum(output.col(0) > 255).val[0] > 0) ||
+           (sum(output.col(8) < 0).val[0] > 0) ||
            (sum(output.col(8) > 255).val[0] > 0) ){
          cout << "ERROR: Dip2::averageFilter(): Border of convolution result contains too large/small values --> Wrong border handling?" << endl;
          return;
    }else{
-      if ( (sum(output < 0).val[0] > 0) or
+      if ( (sum(output < 0).val[0] > 0) ||
          (sum(output > 255).val[0] > 0) ){
             cout << "ERROR: Dip2::averageFilter(): Convolution result contains too large/small values!" << endl;
             return;
@@ -362,18 +355,18 @@ void Dip2::test_medianFilter(void){
       cout << "ERROR: Dip2::medianFilter(): input.size != output.size --> Wrong border handling?" << endl;
       return;
    }
-  if ( (sum(output.row(0) < 0).val[0] > 0) or
-           (sum(output.row(0) > 255).val[0] > 0) or
-           (sum(output.row(8) < 0).val[0] > 0) or
-           (sum(output.row(8) > 255).val[0] > 0) or
-           (sum(output.col(0) < 0).val[0] > 0) or
-           (sum(output.col(0) > 255).val[0] > 0) or
-           (sum(output.col(8) < 0).val[0] > 0) or
+  if ( (sum(output.row(0) < 0).val[0] > 0) ||
+           (sum(output.row(0) > 255).val[0] > 0) ||
+           (sum(output.row(8) < 0).val[0] > 0) ||
+           (sum(output.row(8) > 255).val[0] > 0) ||
+           (sum(output.col(0) < 0).val[0] > 0) ||
+           (sum(output.col(0) > 255).val[0] > 0) ||
+           (sum(output.col(8) < 0).val[0] > 0) ||
            (sum(output.col(8) > 255).val[0] > 0) ){
          cout << "ERROR: Dip2::medianFilter(): Border of convolution result contains too large/small values --> Wrong border handling?" << endl;
          return;
    }else{
-      if ( (sum(output < 0).val[0] > 0) or
+      if ( (sum(output < 0).val[0] > 0) ||
          (sum(output > 255).val[0] > 0) ){
             cout << "ERROR: Dip2::medianFilter(): Convolution result contains too large/small values!" << endl;
             return;
@@ -404,18 +397,18 @@ void Dip2::test_adaptiveFilter(void){
       cout << "ERROR: Dip2::adaptiveFilter(): input.size != output.size --> Wrong border handling?" << endl;
       return;
    }
-  if ( (sum(output.row(0) < 0).val[0] > 0) or
-           (sum(output.row(0) > 255).val[0] > 0) or
-           (sum(output.row(8) < 0).val[0] > 0) or
-           (sum(output.row(8) > 255).val[0] > 0) or
-           (sum(output.col(0) < 0).val[0] > 0) or
-           (sum(output.col(0) > 255).val[0] > 0) or
-           (sum(output.col(8) < 0).val[0] > 0) or
+  if ( (sum(output.row(0) < 0).val[0] > 0) ||
+           (sum(output.row(0) > 255).val[0] > 0) ||
+           (sum(output.row(8) < 0).val[0] > 0) ||
+           (sum(output.row(8) > 255).val[0] > 0) ||
+           (sum(output.col(0) < 0).val[0] > 0) ||
+           (sum(output.col(0) > 255).val[0] > 0) ||
+           (sum(output.col(8) < 0).val[0] > 0) ||
            (sum(output.col(8) > 255).val[0] > 0) ){
          cout << "ERROR: Dip2::adaptiveFilter(): Border of result contains too large/small values --> Wrong border handling?" << endl;
          return;
    }else{
-      if ( (sum(output < 0).val[0] > 0) or
+      if ( (sum(output < 0).val[0] > 0) ||
          (sum(output > 255).val[0] > 0) ){
             cout << "ERROR: Dip2::adaptiveFilter(): Result contains too large/small values!" << endl;
             return;
