@@ -7,6 +7,7 @@
 //============================================================================
 
 #include "Dip2.h"
+
 // convolution in spatial domain
 /*
 src:     input image
@@ -14,12 +15,37 @@ kernel:  filter kernel
 return:  convolution result
 */
 Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
-    Mat dst;
-    flip(kernel, kernel, -1);
-    filter2D(src, dst, -1, kernel, Point(-1, -1), 0, BORDER_DEFAULT);
-    namedWindow("filter2D", CV_WINDOW_AUTOSIZE);
-    imshow( "filter2D Demo", dst);  
-    return dst;
+
+   // TO DO !!
+	Mat outputImage = src.clone();
+	outputImage.zeros(src.size, src.type());
+
+	//cout << src.rows << "/" << src.cols << endl;
+
+	for (int y = 0; y < src.rows; y++){
+		for (int x = 0; x < src.cols; x++){
+			float convolution = 0.;
+
+			for (int j = 0; j < kernel.rows; j++){
+				for (int i = 0; i < kernel.cols; i++){
+					// boundary check 
+					if (x-(i-1) < 0 || y-(j-1) > src.rows || y-(j-1) < 0 || x-(i-1) > src.cols){
+						convolution += 0. * kernel.at<float>(j, i);
+					}
+					else{
+						convolution += src.at<float>(y - (j-1), x - (i-1))*kernel.at<float>(j, i);
+					}
+				}
+			}
+			outputImage.at<float>(y, x) = convolution;// / (kernel.rows*kernel.cols);
+			//cout << (int)src.at<float>(y, x) << ":";
+			//cout << (int)outputImage.at<float>(y, x) << " / ";
+			//if (x == 8) cout << endl;
+		}
+	}
+
+	return outputImage;
+
 }
 
 // the average filter
@@ -30,8 +56,9 @@ kSize:   window size used by local average
 return:  filtered image
 */
 Mat Dip2::averageFilter(Mat& src, int kSize){
-   Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
-   return spatialConvolution(src, kernel);
+  
+   // TO DO !!
+   return src.clone();
 
 }
 
@@ -125,8 +152,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "average", 5);
-	Mat restorated2 = noiseReduction(noise2, "average", 5);
+	Mat restorated1 = noiseReduction(noise1, "average", 1);
+	Mat restorated2 = noiseReduction(noise2, "median", 1);
 	cout << "done" << endl;
 	  
 	// save images
@@ -269,7 +296,7 @@ void Dip2::test_spatialConvolution(void){
          cout << "ERROR: Dip2::spatialConvolution(): Border of convolution result contains too large/small values --> Wrong border handling?" << endl;
          return;
    }else{
-      if ( (sum(output < 0).val[0] > 0) or
+      if ( (sum(output < 0).val[0] > 0) ||
          (sum(output > 255).val[0] > 0) ){
             cout << "ERROR: Dip2::spatialConvolution(): Convolution result contains too large/small values!" << endl;
             return;
