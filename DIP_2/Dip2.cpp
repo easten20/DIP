@@ -17,7 +17,34 @@ return:  convolution result
 Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
 
    // TO DO !!
-   return src.clone();
+	Mat outputImage = src.clone();
+	outputImage.zeros(src.size, src.type());
+
+	//cout << src.rows << "/" << src.cols << endl;
+
+	for (int y = 0; y < src.rows; y++){
+		for (int x = 0; x < src.cols; x++){
+			float convolution = 0.;
+
+			for (int j = 0; j < kernel.rows; j++){
+				for (int i = 0; i < kernel.cols; i++){
+					// boundary check 
+					if (x-(i-1) < 0 || y-(j-1) > src.rows || y-(j-1) < 0 || x-(i-1) > src.cols){
+						convolution += 0. * kernel.at<float>(j, i);
+					}
+					else{
+						convolution += src.at<float>(y - (j-1), x - (i-1))*kernel.at<float>(j, i);
+					}
+				}
+			}
+			outputImage.at<float>(y, x) = convolution;// / (kernel.rows*kernel.cols);
+			//cout << (int)src.at<float>(y, x) << ":";
+			//cout << (int)outputImage.at<float>(y, x) << " / ";
+			//if (x == 8) cout << endl;
+		}
+	}
+
+	return outputImage;
 
 }
 
@@ -111,8 +138,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "", 1);
-	Mat restorated2 = noiseReduction(noise2, "", 1);
+	Mat restorated1 = noiseReduction(noise1, "average", 1);
+	Mat restorated2 = noiseReduction(noise2, "median", 1);
 	cout << "done" << endl;
 	  
 	// save images
