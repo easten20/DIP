@@ -44,7 +44,21 @@ threshold:  threshold value on differences in order to decide which average to u
 return:     filtered image
 */
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
+   int local_kSize = 3;
+   Mat mat_local_avg = averageFilter(src, 3);
+   Mat mat_avg = averageFilter(src, kSize);
+	
+   Mat dst = Mat::zeroes( src.size(), src.type() ); 
+   for (int x = 0; x < src.cols; x++){
+	for (int y = 0; y < src.rows; y++){	
+		for (int c = 0, c < src.channels(); c++){
+			if (mat_local_avg.at<Vec3b>(y,x)[c] - mat_avg.at<Vec3b>(y,x);
+		}
+	} 
+   }
      
+   Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
+   return spatialConvolution(src, kernel);
    // TO DO !!
    return src.clone();
 
