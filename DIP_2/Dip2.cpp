@@ -18,7 +18,7 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
 
    // TO DO !!
 	Mat outputImage = src.clone();
-	//outputImage.zeros(src.size(), src.type());
+	//outputImage.zeros(src.size, src.type());
 
 	//cout << src.rows << "/" << src.cols << endl;
 
