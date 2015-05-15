@@ -87,6 +87,12 @@ Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
    // TO DO !!
 }
 
+#define SETINTERVAL(x,minx,maxx) (max(min(x,maxx),minx))
+
+template<typename data> data getMatData(Mat& src, int y, int x){
+	return src.at<data>(SETINTERVAL(y, 0, src.rows - 1), SETINTERVAL(x, 0, src.cols - 1));
+}
+
 // the median filter
 /*
 src:     input image
@@ -96,7 +102,33 @@ return:  filtered image
 Mat Dip2::medianFilter(Mat& src, int kSize){
 
    // TO DO !!
-   return src.clone();
+	Mat output(src.rows, src.cols, src.type());
+	//kernel center
+	int ky = kSize / 2;
+	int kx = kSize / 2;
+	int size = kSize*kSize;
+	//shift filters center
+	for (int y = 0; y<src.rows; y++){
+		for (int x = 0; x<src.cols; x++){
+			//apply median
+			vector<float> list;
+			for (int y1 = 0; y1<kSize; y1++){
+				int fy = y + y1 - ky;
+				for (int x1 = 0; x1<kSize; x1++){
+					int fx = x + x1 - kx;
+					list.push_back(getMatData<float>(src, fy, fx));
+				}
+			}
+			std::sort(list.begin(), list.begin() + size);
+			if (size % 2 == 0){
+				output.at<float>(y, x) = (list[size / 2] + list[size / 2 - 1]) / 2;
+			}
+			else{
+				output.at<float>(y, x) = list[size / 2];
+			}
+		}
+	}
+	return output;
 
 }
 
@@ -148,8 +180,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "average", 5);
-	Mat restorated2 = noiseReduction(noise2, "adaptive", 9);
+	Mat restorated1 = noiseReduction(noise1, "median", 5);
+	Mat restorated2 = noiseReduction(noise2, "median", 9);
 	cout << "done" << endl;
 	  
 	// save images
