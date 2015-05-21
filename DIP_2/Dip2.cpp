@@ -18,32 +18,22 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
 
    // TO DO !!
 	Mat outputImage = src.clone();
-	//outputImage.zeros(src.size, src.type());
-
-	//cout << src.rows << "/" << src.cols << endl;
-
-	for (int y = 0; y < src.rows; y++){
-		for (int x = 0; x < src.cols; x++){
+	int border = kernel.cols / 2; //assume it is symmetry		
+	Mat src_buf(src.rows + border*2, src.cols + border*2, src.depth()); //prepare for matrix with border
+	copyMakeBorder(src, src_buf, border, border,border, border, BORDER_REPLICATE); //extend border by replicating rows and cols
+	//flip kernel along x and y axis
+	flip(kernel, kernel, -1);
+	for (int y = border; y < src_buf.rows-border; y++){
+		for (int x = border; x < src_buf.cols-border; x++){
 			float convolution = 0.;
-
 			for (int j = 0; j < kernel.rows; j++){
 				for (int i = 0; i < kernel.cols; i++){
-					// boundary check 
-					if (x-(i-1) < 0 || y-(j-1) > src.rows || y-(j-1) < 0 || x-(i-1) > src.cols){
-						convolution += 0. * kernel.at<float>(j, i);
-					}
-					else{
-						convolution += src.at<float>(y - (j-1), x - (i-1))*kernel.at<float>(j, i);
-					}
+					convolution += src_buf.at<float>(y - (kernel.rows/2) + j, x - (kernel.cols/2) + i)*kernel.at<float>(j, i);
 				}
 			}
-			outputImage.at<float>(y, x) = convolution;// / (kernel.rows*kernel.cols);
-			//cout << (int)src.at<float>(y, x) << ":";
-			//cout << (int)outputImage.at<float>(y, x) << " / ";
-			//if (x == 8) cout << endl;
+			outputImage.at<float>(y-border, x-border) = convolution;
 		}
 	}
-
 	return outputImage;
 
 }
@@ -56,8 +46,9 @@ kSize:   window size used by local average
 return:  filtered image
 */
 Mat Dip2::averageFilter(Mat& src, int kSize){
- Mat kernel = Mat::ones( kSize, kSize, CV_32F )/ (float)(kSize*kSize); 
-return spatialConvolution(src, kernel);
+	Mat kernel = Mat::ones( kSize, kSize, src.type()); 
+	Mat outputImage = spatialConvolution(src, kernel);
+	return outputImage / (float)(kSize * kSize);
 }
 
 // the adaptive filter
@@ -70,14 +61,14 @@ return:     filtered image
 */
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
    int local_kSize = 3;
-   Mat mat_local_avg = averageFilter(src, 3);
    Mat mat_avg = averageFilter(src, kSize);
+   Mat mat_local_avg = averageFilter(src, local_kSize);
 	
    Mat dst = Mat::zeros( src.size(), src.type() ); 
    for (int x = 0; x < src.cols; x++){
 	for (int y = 0; y < src.rows; y++){	
-			if (mat_local_avg.at<float>(y,x) - mat_avg.at<float>(y,x) < threshold)
-				dst.at<float>(y,x) = mat_avg.at<float>(y,x);
+			if (mat_local_avg.at<float>(y,x) - mat_avg.at<float>(y,x) < threshold){
+				dst.at<float>(y,x) = mat_avg.at<float>(y,x);}
 			else
 				dst.at<float>(y,x) = mat_local_avg.at<float>(y,x);
 	} 
@@ -181,7 +172,7 @@ void Dip2::run(void){
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
 	Mat restorated1 = noiseReduction(noise1, "median", 5);
-	Mat restorated2 = noiseReduction(noise2, "median", 9);
+	Mat restorated2 = noiseReduction(noise2, "adaptive", 9, 40);
 	cout << "done" << endl;
 	  
 	// save images
@@ -281,16 +272,14 @@ void Dip2::generateNoisyImages(string fname){
    threshold(tmp1,tmp1,0,0,CV_THRESH_TOZERO);
    // save image
    imwrite("noiseType_2.jpg", tmp1);
-
-	cout << "done" << endl;
-	cout << "Please run now: dip2 restorate" << endl;
-
+   cout << "done" << endl;
+   cout << "Please run now: dip2 restorate" << endl;
 }
 
 // function calls some basic testing routines to test individual functions for correctness
 void Dip2::test(void){
 
-	test_spatialConvolution();
+   test_spatialConvolution();
    test_averageFilter();
    test_medianFilter();
    test_adaptiveFilter();
@@ -503,7 +492,7 @@ void Dip2::test_adaptiveFilter(void){
                       {0, 0, 0, 0, 0, 0, 0, 0, 0}};
    for(int y=2; y<6; y++){
       for(int x=2; x<6; x++){
-         if (abs(output.at<float>(y,x) - ref[y][x]) > 0.0001){
+         if (abs(output.at<float>(y,x) - ref[y][x]) > 0.0001){	  
             cout << "ERROR: Dip2::adaptiveFilter(): Result contains wrong values!" << endl;
             return;
          }
@@ -511,7 +500,7 @@ void Dip2::test_adaptiveFilter(void){
    }
    for(int y=1; y<7; y++){
       for(int x=1; x<7; x++){
-         if (abs(output2.at<float>(y,x) - ref2[y][x]) > 0.0001){
+         if (abs(output2.at<float>(y,x) - ref2[y][x]) > 0.0001){	    		
             cout << "ERROR: Dip2::adaptiveFilter(): Result contains wrong values!" << endl;
             return;
          }
