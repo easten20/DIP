@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
    clock_t time;
    
    // parameter of USM
-   int numberOfKernelSizes = 5;        // number of differently sized smoothing kernels
+   int numberOfKernelSizes = 10;        // number of differently sized smoothing kernels
    double thresh = 0;                 // threshold on difference necessary to perform operation
    double scale = 10.;                   // scaling of edge enhancement
 
