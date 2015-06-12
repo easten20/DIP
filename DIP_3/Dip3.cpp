@@ -1,5 +1,5 @@
 //============================================================================
-		// Name    : Dip3.cpp
+// Name    : Dip3.cpp
 // Author   : Ronny Haensch
 // Version    : 2.0
 // Copyright   : -
@@ -15,7 +15,6 @@ return:    the generated filter kernel
 */
 Mat Dip3::createGaussianKernel(int kSize){
 
-   // TO DO !!!
 	Mat GaussianK(kSize, kSize, CV_32FC1);
 
 	//we can adjust below
@@ -148,8 +147,27 @@ Mat Dip3::usm(Mat& in, int type, int size, double thresh, double scale){
    }
 
    // TO DO !!!
+   //2. subtract smoothed image
+   Mat subtractedImage = in.clone();
+   subtractedImage -= tmp;
+   //subtract(in, tmp, subtractedImage);
 
-   return in;
+   //3. Thresholding
+   Mat scaledImage = Mat::zeros(in.size(), CV_32FC1);
+
+   for (int i = 0; i < in.rows; i++){
+	   for (int j = 0; j < in.cols; j++){
+		   if (subtractedImage.at<float>(i, j)>thresh){
+			   scaledImage.at<float>(i, j) = scale*subtractedImage.at<float>(i, j);
+		   }
+	   }
+   }
+
+   Mat enhancedImage = in.clone();
+   enhancedImage += scaledImage;
+   //add()
+   return enhancedImage;
+//   return in;
 
 }
 
