@@ -31,9 +31,34 @@ return   circular shifted matrix
 */
 Mat Dip3::circShift(Mat& in, int dx, int dy){
 
-   // TO DO !!!
+	Mat tmp = Mat::zeros(in.rows, in.cols, in.type());
+	int x, y, new_x, new_y;
+	
+	for(y=0; y<in.rows; y++){
+	      // calulate new y-coordinate
+	      new_y = y + dy;
+	      if (new_y<0)
+		  new_y = new_y + in.rows;
+	      if (new_y>=in.rows)
+		  new_y = new_y - in.rows;
+	      
+	      for(x=0; x<in.cols; x++){
 
-   return in;
+		  // calculate new x-coordinate
+		  new_x = x + dx;
+		  if (new_x<0)
+			new_x = new_x + in.cols;
+		  if (new_x>=in.cols)
+			new_x = new_x - in.cols;
+ 
+		  tmp.at<float>(new_y, new_x) = in.at<float>(y, x);
+		  
+	    }
+	}
+	
+
+	cout << tmp << endl;
+   	return tmp;
 }
 
 //Performes a convolution by multiplication in frequency domain
