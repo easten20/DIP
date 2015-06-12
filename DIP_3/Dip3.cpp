@@ -1,5 +1,5 @@
 //============================================================================
-// Name    : Dip3.cpp
+		// Name    : Dip3.cpp
 // Author   : Ronny Haensch
 // Version    : 2.0
 // Copyright   : -
@@ -58,10 +58,32 @@ dy       shift in y-direction
 return   circular shifted matrix
 */
 Mat Dip3::circShift(Mat& in, int dx, int dy){
+	Mat tmp = Mat::zeros(in.rows, in.cols, in.type());
+	int x, y, new_x, new_y;
+	
+	for(y=0; y<in.rows; y++){
+	      // calulate new y-coordinate
+	      new_y = y + dy;
+	      if (new_y<0)
+		  new_y = new_y + in.rows;
+	      if (new_y>=in.rows)
+		  new_y = new_y - in.rows;
+	      
+	      for(x=0; x<in.cols; x++){
 
-   // TO DO !!!
-
-   return in;
+		  // calculate new x-coordinate
+		  new_x = x + dx;
+		  if (new_x<0)
+			new_x = new_x + in.cols;
+		  if (new_x>=in.cols)
+			new_x = new_x - in.cols;
+ 
+		  tmp.at<float>(new_y, new_x) = in.at<float>(y, x);
+		  
+	    }
+	}
+	
+   	return tmp;
 }
 
 //Performes a convolution by multiplication in frequency domain
@@ -71,10 +93,28 @@ kernel   filter kernel
 return   output image
 */
 Mat Dip3::frequencyConvolution(Mat& in, Mat& kernel){
+     
+    Mat freq_in, freq_kernel, result;
+ 
+    //copy kernel to large matrix (the size of input image)
+    cv::Rect roi(cv::Point(0,0),kernel.size());
+    Mat destinationROI = Mat::zeros(in.size(), in.type());
+    kernel.copyTo(destinationROI(roi));
 
-   // TO DO !!!
+    //perform circ shift on kernel 
+    Mat circ_kernel = circShift(destinationROI, -kernel.rows/2, -kernel.cols/2);
 
-   return in;
+    //convert to frequency domains
+    dft(in, freq_in, 0);
+    dft(circ_kernel, freq_kernel, 0);
+
+    //multiplication in freq domains
+    mulSpectrums(freq_in, freq_kernel, freq_in,0);
+    
+    //convert to spatial domain
+    dft(freq_in, result, DFT_INVERSE + DFT_SCALE);
+
+    return result;
 }
 
 // Performs UnSharp Masking to enhance fine image structures
@@ -120,11 +160,25 @@ kernel:  filter kernel
 return:  convolution result
 */
 Mat Dip3::spatialConvolution(Mat& src, Mat& kernel){
-
-   // Hopefully already DONE
-
-   return src;
-
+	
+	Mat outputImage = src.clone();
+	int border = kernel.cols / 2; //assume it is symmetry		
+	Mat src_buf(src.rows + border*2, src.cols + border*2, src.depth()); //prepare for matrix with border
+	copyMakeBorder(src, src_buf, border, border,border, border, BORDER_REPLICATE); //extend border by replicating rows and cols
+	//flip kernel along x and y axis
+	flip(kernel, kernel, -1);
+	for (int y = border; y < src_buf.rows-border; y++){
+		for (int x = border; x < src_buf.cols-border; x++){
+			float convolution = 0.;
+			for (int j = 0; j < kernel.rows; j++){
+				for (int i = 0; i < kernel.cols; i++){
+					convolution += src_buf.at<float>(y - (kernel.rows/2) + j, x - (kernel.cols/2) + i)*kernel.at<float>(j, i);
+				}
+			}
+			outputImage.at<float>(y-border, x-border) = convolution;
+		}
+	}
+	return outputImage;
 }
 
 /* *****************************
