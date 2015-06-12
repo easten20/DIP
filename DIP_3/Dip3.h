@@ -9,6 +9,8 @@
 #include <iostream>
 
 #include <opencv2/opencv.hpp>
+#include <ciso646>
+#define PI 3.141592
 
 using namespace std;
 using namespace cv;

@@ -16,8 +16,36 @@ return:    the generated filter kernel
 Mat Dip3::createGaussianKernel(int kSize){
 
    // TO DO !!!
-   
-  return Mat::zeros(kSize, kSize, CV_32FC1);
+	Mat GaussianK(kSize, kSize, CV_32FC1);
+
+	//we can adjust below
+	float sigmaX = kSize / 5.;
+	float sigmaY = kSize / 5.;
+	float meanX = .0;
+	float meanY = .0;
+	float sum = .0;
+
+	//cout << "kernel Size:" << kSize << endl;
+
+	for (int x = -kSize / 2; x < kSize / 2 + 1; x++){
+		for (int y = -kSize / 2; y < kSize / 2 + 1; y++){
+			GaussianK.at<float>(x + kSize / 2, y + kSize / 2) = 1. / (2. * PI*sigmaX*sigmaY)*exp(-1. / 2. * ((x - meanX)*(x - meanX) / sigmaX*sigmaX + (y - meanY)*(y - meanY) / sigmaY*sigmaY));
+
+			sum += GaussianK.at<float>(x + kSize / 2, y + kSize / 2);
+		}
+	}
+
+	//Normalization
+	for (int x = -kSize / 2; x < kSize / 2+1; x++){
+		for (int y = -kSize / 2; y < kSize / 2+1; y++){
+			GaussianK.at<float>(x + kSize / 2, y + kSize / 2) /= sum;
+			//cout << GaussianK.at<float>(x + kSize / 2, y + kSize / 2) << " / ";
+		}
+		//cout << endl;
+	}
+	
+	return GaussianK;
+	//return Mat::zeros(kSize, kSize, CV_32FC1);
 	
 }
 
@@ -31,34 +59,9 @@ return   circular shifted matrix
 */
 Mat Dip3::circShift(Mat& in, int dx, int dy){
 
-	Mat tmp = Mat::zeros(in.rows, in.cols, in.type());
-	int x, y, new_x, new_y;
-	
-	for(y=0; y<in.rows; y++){
-	      // calulate new y-coordinate
-	      new_y = y + dy;
-	      if (new_y<0)
-		  new_y = new_y + in.rows;
-	      if (new_y>=in.rows)
-		  new_y = new_y - in.rows;
-	      
-	      for(x=0; x<in.cols; x++){
+   // TO DO !!!
 
-		  // calculate new x-coordinate
-		  new_x = x + dx;
-		  if (new_x<0)
-			new_x = new_x + in.cols;
-		  if (new_x>=in.cols)
-			new_x = new_x - in.cols;
- 
-		  tmp.at<float>(new_y, new_x) = in.at<float>(y, x);
-		  
-	    }
-	}
-	
-
-	cout << tmp << endl;
-   	return tmp;
+   return in;
 }
 
 //Performes a convolution by multiplication in frequency domain
