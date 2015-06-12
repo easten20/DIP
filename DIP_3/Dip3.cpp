@@ -101,7 +101,7 @@ Mat Dip3::frequencyConvolution(Mat& in, Mat& kernel){
     kernel.copyTo(destinationROI(roi));
 
     //perform circ shift on kernel 
-    Mat circ_kernel = circShift(destinationROI, -kernel.rows/2, -kernel.cols/2);
+    Mat circ_kernel = circShift(destinationROI, -kernel.cols/2, -kernel.rows/2);
 
     //convert to frequency domains
     dft(in, freq_in, 0);
