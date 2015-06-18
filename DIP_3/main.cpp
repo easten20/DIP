@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
    // run some test routines
    // NOTE: comment that out for processing only!
-   //dip3.test();
+   dip3.test();
    
    // start processing
    // file to save time measurements
