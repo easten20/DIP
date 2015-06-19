@@ -155,13 +155,15 @@ Mat Dip3::usm(Mat& in, int type, int size, double thresh, double scale){
    //3. Thresholding
    Mat scaledImage = Mat::zeros(in.size(), CV_32FC1);
 
-   for (int i = 0; i < in.rows; i++){
-	   for (int j = 0; j < in.cols; j++){
-		   if (subtractedImage.at<float>(i, j)>thresh){
-			   scaledImage.at<float>(i, j) = scale*subtractedImage.at<float>(i, j);
-		   }
-	   }
-   }
+   threshold(subtractedImage, scaledImage, thresh, 255, THRESH_TOZERO);
+   scaledImage *= scale;
+   ////for (int i = 0; i < in.rows; i++){
+	  //// for (int j = 0; j < in.cols; j++){
+		 ////  if (subtractedImage.at<float>(i, j)>thresh){
+			////   scaledImage.at<float>(i, j) = scale*subtractedImage.at<float>(i, j);
+		 ////  }
+	  //// }
+   ////}
 
    Mat enhancedImage = in.clone();
    enhancedImage += scaledImage;

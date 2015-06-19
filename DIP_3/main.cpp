@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
    // run some test routines
    // NOTE: comment that out for processing only!
-   //dip3.test();
+   dip3.test();
    
    // start processing
    // file to save time measurements
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
    clock_t time;
    
    // parameter of USM
-   int numberOfKernelSizes = 5;        // number of differently sized smoothing kernels
+   int numberOfKernelSizes = 10;        // number of differently sized smoothing kernels
    double thresh = 0;                 // threshold on difference necessary to perform operation
    double scale = 10.;                   // scaling of edge enhancement
 
