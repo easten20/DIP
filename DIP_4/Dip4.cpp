@@ -67,9 +67,64 @@ return   :   restorated output image
 */
 Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
    
+   
    // TODO !!!
+   Mat freq_deg, freq_kernel, result;
 
-   return degraded;
+  
+    //copy kernel to large matrix (the size of input image)
+    cv::Rect roi(cv::Point(0,0),filter.size());
+    Mat destinationROI = Mat::zeros(degraded.size(), degraded.type());
+    filter.copyTo(destinationROI(roi));
+
+    //perform circ shift on kernel 
+    Mat circ_kernel = circShift(destinationROI, -filter.cols/2, -filter.rows/2);
+   
+    //convert to frequency domains
+    dft(degraded, freq_deg, DFT_COMPLEX_OUTPUT);
+    dft(circ_kernel, freq_kernel, DFT_COMPLEX_OUTPUT);
+
+    //split kernel into real and imaginary part
+    Mat filter_planes[2];
+    split(freq_kernel, filter_planes);   
+
+   //|P|²
+    Mat mag_filter;
+    magnitude(filter_planes[0], filter_planes[1], mag_filter);
+    multiply(mag_filter, mag_filter, mag_filter);
+   // 
+
+   //|P|² + 1/SNR²
+    Mat denominator = mag_filter + 1 / (snr * snr);
+    //Mat denominator = mag_filter;
+   //
+
+   //P*
+   for (int x = 0; x < freq_kernel.cols; x++) {
+   	for (int y = 0; y < freq_kernel.rows; y++) {		
+		//imaginary part
+		filter_planes[1].at<float>(y,x) = -1*filter_planes[1].at<float>(y,x);
+	}
+   }
+   
+   //Q = P* / ( |P|² + 1/SNR² )
+     divide(filter_planes[0], denominator, filter_planes[0]);
+     divide(filter_planes[1], denominator, filter_planes[1]);
+     merge(filter_planes, 2, freq_kernel);
+   // 
+   
+   
+   //multiplication in freq domains
+   mulSpectrums(freq_deg, freq_kernel, freq_deg,0);
+   
+   
+    //convert to spatial domain
+    dft(freq_deg, result, DFT_INVERSE | DFT_REAL_OUTPUT + DFT_SCALE);
+    
+    //cout << result << endl;
+    threshold(result, result,255, 0, THRESH_TRUNC);
+ 
+   return result;
 
 }
 
