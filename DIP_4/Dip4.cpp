@@ -52,10 +52,59 @@ filter   :  filter which caused degradation
 return   :  restorated output image
 */
 Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
+	
+	Mat filterdft=filter.clone();
+	
+	Mat padded;
+	int m = getOptimalDFTSize(filterdft.rows);
+	int n = getOptimalDFTSize(filterdft.cols);
+	copyMakeBorder(filterdft, padded, 0, m - filterdft.rows, 0, n - filterdft.cols, BORDER_CONSTANT, Scalar::all(0));
 
-   // TODO !!!
-   
-   return degraded;
+	Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
+	Mat complexI;
+	merge(planes, 2, complexI);
+
+	cout << "dft" << endl;
+	filterdft = complexI.clone();
+	dft(filterdft, filterdft, DFT_SCALE);
+
+
+
+
+
+
+	double min, max;
+	Point minLoc, maxLoc;
+	cout << "minMaxLoc" << endl;
+	minMaxLoc(filterdft, &min, &max, &minLoc, &maxLoc);
+
+	cout << "threshold" << endl;
+	double ep = 0.05;
+	double threshold_value = ep*abs(max);
+	//filterdft = 1. / filterdft;
+	//threshold(filterdft, filterdft, 1 / threshold_value, 255, CV_THRESH_TRUNC);
+	for (int x = 0; x < filterdft.rows; x++){
+		for (int y = 0; y < filterdft.cols; y++){
+			if (abs(filterdft.at<float>(x, y)) < threshold_value)
+			{
+				filterdft.at<float>(x,y) = 1. / threshold_value;
+			}
+			else{
+				filterdft.at<float>(x, y) = 1. / filterdft.at<float>(x, y);
+			}
+		}
+	}
+	cout << "..end" << endl;
+
+	Mat invFilter = filterdft.clone();
+	cout << "idft" << endl;
+	idft(invFilter, invFilter, DFT_SCALE | DFT_REAL_OUTPUT);
+
+	Mat restored;
+	cout << "filter2D" << endl;
+	filter2D(degraded, restored, -1, invFilter);
+
+   return restored;
 }
 
 // Function applies wiener filter to restorate a degraded image
