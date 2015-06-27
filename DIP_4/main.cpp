@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 
    // run some test routines
    // NOTE: uncomment the following line for debugging/testing purposes!
-   //dip4.test();
+   dip4.test();
    
 	// some windows for displaying imagesvoid degradeImage(Mat imgIn32F, Mat degradedImg, double filterDev, double snr)
     const char* win_1 = "Original Image";
