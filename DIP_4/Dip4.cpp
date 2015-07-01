@@ -7,6 +7,7 @@
 //============================================================================
 
 #include "Dip4.h"
+#include <complex>
 
 // Performes a circular shift in (dx,dy) direction
 /*
@@ -53,58 +54,47 @@ return   :  restorated output image
 */
 Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 	
-	Mat filterdft=filter.clone();
-	
-	Mat padded;
-	int m = getOptimalDFTSize(filterdft.rows);
-	int n = getOptimalDFTSize(filterdft.cols);
-	copyMakeBorder(filterdft, padded, 0, m - filterdft.rows, 0, n - filterdft.cols, BORDER_CONSTANT, Scalar::all(0));
+    Mat freq_deg, freq_kernel, result;
 
-	Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
-	Mat complexI;
-	merge(planes, 2, complexI);
+  
+    //copy kernel to large matrix (the size of input image)
+    cv::Rect roi(cv::Point(0,0),filter.size());
+    Mat destinationROI = Mat::zeros(degraded.size(), degraded.type());
+    filter.copyTo(destinationROI(roi));
 
-	cout << "dft" << endl;
-	filterdft = complexI.clone();
-	dft(filterdft, filterdft, DFT_SCALE);
+    //perform circ shift on kernel 
+    Mat circ_kernel = circShift(destinationROI, -filter.cols/2, -filter.rows/2);
+   
+    //convert to frequency domains
+    dft(degraded, freq_deg, DFT_COMPLEX_OUTPUT);
+    dft(circ_kernel, freq_kernel, DFT_COMPLEX_OUTPUT);
 
+     const double epsilon = 0.05f;
 
+    double maxMagnitude;
+     minMaxLoc(abs(freq_kernel), 0, &maxMagnitude);
 
-
-
-
-	double min, max;
-	Point minLoc, maxLoc;
-	cout << "minMaxLoc" << endl;
-	minMaxLoc(filterdft, &min, &max, &minLoc, &maxLoc);
-
-	cout << "threshold" << endl;
-	double ep = 0.05;
-	double threshold_value = ep*abs(max);
-	//filterdft = 1. / filterdft;
-	//threshold(filterdft, filterdft, 1 / threshold_value, 255, CV_THRESH_TRUNC);
-	for (int x = 0; x < filterdft.rows; x++){
-		for (int y = 0; y < filterdft.cols; y++){
-			if (abs(filterdft.at<float>(x, y)) < threshold_value)
-			{
-				filterdft.at<float>(x,y) = 1. / threshold_value;
-			}
-			else{
-				filterdft.at<float>(x, y) = 1. / filterdft.at<float>(x, y);
-			}
+        const double threshold =  maxMagnitude * epsilon;
+	for (int ri = 0; ri < freq_kernel.rows; ri++) {
+		for (int ci = 0; ci < freq_kernel.cols; ci++) {
+			if (norm(freq_kernel.at<Vec2f>(ri, ci)) < threshold) {
+				freq_kernel.at<Vec2f>(ri, ci) = threshold;
+			}			
+			std::complex<float> p(freq_kernel.at<Vec2f>(ri,ci)[0], freq_kernel.at<Vec2f>(ri,ci)[1]);
+			p = 1.f / p;
+                        freq_kernel.at<Vec2f>(ri,ci)[0] = p.real();
+                        freq_kernel.at<Vec2f>(ri,ci)[1] = p.imag();
 		}
-	}
-	cout << "..end" << endl;
+    }
+   
+   //multiplication in freq domains
+   mulSpectrums(freq_deg, freq_kernel, freq_deg,0);
+   
+   
+   //convert to spatial domain
+   dft(freq_deg, result, DFT_INVERSE | DFT_REAL_OUTPUT + DFT_SCALE);
 
-	Mat invFilter = filterdft.clone();
-	cout << "idft" << endl;
-	idft(invFilter, invFilter, DFT_SCALE | DFT_REAL_OUTPUT);
-
-	Mat restored;
-	cout << "filter2D" << endl;
-	filter2D(degraded, restored, -1, invFilter);
-
-   return restored;
+   return result;
 }
 
 // Function applies wiener filter to restorate a degraded image
