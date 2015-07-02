@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     // degrade image
     cout << "degrade image" << endl;
     double filterDev = 9;
-    double snr = 10;//10000;
+    double snr = 10000;
     Mat degradedImg;
     Mat gaussKernel = dip4.degradeImage(img, degradedImg, filterDev, snr);
     cout << " > done" << endl;

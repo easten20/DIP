@@ -55,7 +55,6 @@ return   :  restorated output image
 Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 	
     Mat freq_deg, freq_kernel, result;
-
   
     //copy kernel to large matrix (the size of input image)
     cv::Rect roi(cv::Point(0,0),filter.size());
@@ -69,12 +68,13 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
     dft(degraded, freq_deg, DFT_COMPLEX_OUTPUT);
     dft(circ_kernel, freq_kernel, DFT_COMPLEX_OUTPUT);
 
-     const double epsilon = 0.05f;
+    const double epsilon = 0.05f;
 
     double maxMagnitude;
-     minMaxLoc(abs(freq_kernel), 0, &maxMagnitude);
+    minMaxLoc(abs(freq_kernel), 0, &maxMagnitude);
+    const double threshold =  maxMagnitude * epsilon;
 
-        const double threshold =  maxMagnitude * epsilon;
+	//Replace the inverse filter 1/Pi by Qi
 	for (int ri = 0; ri < freq_kernel.rows; ri++) {
 		for (int ci = 0; ci < freq_kernel.cols; ci++) {
 			if (norm(freq_kernel.at<Vec2f>(ri, ci)) < threshold) {
@@ -89,8 +89,7 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
    
    //multiplication in freq domains
    mulSpectrums(freq_deg, freq_kernel, freq_deg,0);
-   
-   
+      
    //convert to spatial domain
    dft(freq_deg, result, DFT_INVERSE | DFT_REAL_OUTPUT + DFT_SCALE);
 
