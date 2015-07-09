@@ -10,7 +10,19 @@
 
 // uses structure tensor to define interest points (foerstner)
 void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
+
 	// TO DO !!!
+	//Computes keypoints using structure tensor
+	//Calculate directional gradients
+	//Convolution with first derivative of Gaussian
+
+
+	Mat FstDevKernel = createFstDevKernel(sigma);
+	//Mat resultsImg = img.clone();
+
+	filter2D(img, img, -1, FstDevKernel);
+	//img = nonMaxSuppression(img)
+	
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
@@ -20,6 +32,15 @@ return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
 	// TO DO !!!
+	int kSize = round(sigma * 3) * 2 - 1;
+
+	Mat kernel = getGaussianKernel(kSize, sigma, CV_32FC1);
+	Mat Gx = Mat::zeros(kSize, kSize, CV_32FC1);
+	Mat Gy = Mat::zeros(kSize, kSize, CV_32FC1);
+	getDerivKernels(Gx, Gy, 1, 1, kSize);
+
+	return Gx;
+
 }
 
 /* *****************************
