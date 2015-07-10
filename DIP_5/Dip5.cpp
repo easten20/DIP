@@ -20,7 +20,9 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	Mat FstDevKernel = createFstDevKernel(sigma);
 	//Mat resultsImg = img.clone();
 
+	//Calculate directional gradients
 	filter2D(img, img, -1, FstDevKernel);
+
 	//img = nonMaxSuppression(img)
 	
 }
@@ -37,7 +39,14 @@ Mat Dip5::createFstDevKernel(double sigma){
 	Mat kernel = getGaussianKernel(kSize, sigma, CV_32FC1);
 	Mat Gx = Mat::zeros(kSize, kSize, CV_32FC1);
 	Mat Gy = Mat::zeros(kSize, kSize, CV_32FC1);
-	getDerivKernels(Gx, Gy, 1, 1, kSize);
+
+	for (int i = 0; i < kSize; i++){
+		for (int j = 0; j < kSize; j++){
+			Gx.at<float>(i, j) = -i / (sigma*sigma)*kernel.at<float>(i, j);
+			Gy.at<float>(i, j) = -j / (sigma*sigma)*kernel.at<float>(i, j);
+		}
+	}
+	//getDerivKernels(Gx, Gy, 1, 1, kSize);
 
 	return Gx;
 
