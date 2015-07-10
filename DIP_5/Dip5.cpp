@@ -80,7 +80,7 @@ sigma	standard deviation of the Gaussian kernel
 return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
-	// TO DO !!!
+
 	int kSize = round(sigma * 3) * 2 - 1;
 
 	Mat gaussKernel = getGaussianKernel(kSize, sigma, CV_32FC1);
