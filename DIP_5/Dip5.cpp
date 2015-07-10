@@ -17,15 +17,64 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	//Convolution with first derivative of Gaussian
 
 
-	Mat FstDevKernel = createFstDevKernel(sigma);
-	Mat resultsImg = img.clone();
-
+	Mat FDKernel = createFstDevKernel(sigma);
+	Mat resultsImg;
+	Mat Gx, Gy;
 	//Calculate directional gradients
-	filter2D(img, resultsImg, -1, FstDevKernel);
-	imshow("results", resultsImg);
+	filter2D(img, Gx, -1, FDKernel);
+	imshow("resultsX", Gx);
 
-	//img = nonMaxSuppression(img)
+	filter2D(img, Gy, -1, FDKernel.t());
+	imshow("resultsY", Gy);
 	
+	Mat Gxx = Gx.mul(Gx);
+	Mat Gyy = Gy.mul(Gy);
+	Mat Gxy = Gx.mul(Gy);
+
+	GaussianBlur(Gxy, Gxy, cv::Size(3,3), 1);
+
+	imshow("resultsxy", Gxy);
+
+	Mat trace;
+	add(Gxx, Gyy, trace);
+	Mat stTensor = Mat::zeros(2, 2, CV_32FC1);
+	stTensor.at<float>(0, 0) = sum(Gxx)[0];
+	stTensor.at<float>(0, 1) = sum(Gxy)[0];
+	stTensor.at<float>(1, 0) = sum(Gxy)[0];
+	stTensor.at<float>(1, 1) = sum(Gyy)[0];
+
+	//filter2D(img, img, -1, stTensor);
+	imshow("structure tensor", trace);
+	Mat de1, de2, determinant;
+	de1 = Gxx.mul(Gyy);
+	de2 = Gxy.mul(Gxy);
+	determinant = de1 - de2;
+
+	imshow("determinant", determinant);
+	Mat weight = determinant / trace;
+	float meanW = mean(weight)[0];
+
+	imshow("weight", weight);
+	weight = nonMaxSuppression(weight);
+	threshold(weight, weight, 0.5*meanW, 1, THRESH_TOZERO);
+	imshow("weight", weight);
+	
+	Mat iso;
+	iso = 4 * determinant / trace.mul(trace);
+	iso = nonMaxSuppression(iso);
+	threshold(iso, iso, 0.5, 255, THRESH_TOZERO);
+	imshow("iso", iso);
+//	threshold(iso, iso, 1, 255, THRESH_BINARY_INV);
+
+	
+	for (int i = 0; i < iso.rows; i++){
+		for (int j = 0; j < iso.cols; j++){
+			if (iso.at<float>(i, j)!=0&&weight.at<float>(i,j)!=0){
+				points.push_back(KeyPoint(i, j, 3));
+			}
+		}
+	}
+
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
@@ -36,21 +85,18 @@ return	the calculated kernel
 Mat Dip5::createFstDevKernel(double sigma){
 	// TO DO !!!
 	int kSize = round(sigma * 3) * 2 - 1;
-	//cout << "kernel size:" << kSize<<endl;
+
 	Mat gaussKernel = getGaussianKernel(kSize, sigma, CV_32FC1);
 	gaussKernel = gaussKernel * gaussKernel.t();
 	
 	Mat Gx = Mat::zeros(kSize, kSize, CV_32FC1);
-	Mat Gy = Mat::zeros(kSize, kSize, CV_32FC1);
 
 	for (int i = 0; i < kSize; i++){
 		for (int j = 0; j < kSize; j++){		
 			Gx.at<float>(i, j) = (-(i-1) / (sigma*sigma))*gaussKernel.at<float>(i, j);
-			//cout << (float)Gx.at<float>(i, j) << " ";
-			Gy.at<float>(i, j) = (-j / (sigma*sigma))*gaussKernel.at<float>(i, j);
 		}
-//		cout << endl;
-	}	return Gx;
+	}	
+	return Gx;
 
 }
 
