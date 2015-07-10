@@ -20,6 +20,7 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	Mat FDKernel = createFstDevKernel(sigma);
 	Mat resultsImg;
 	Mat Gx, Gy;
+
 	//Calculate directional gradients
 	filter2D(img, Gx, -1, FDKernel);
 	imshow("resultsX", Gx);
@@ -31,42 +32,37 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	Mat Gyy = Gy.mul(Gy);
 	Mat Gxy = Gx.mul(Gy);
 
+	//Average (Gaussian Window)
 	GaussianBlur(Gxy, Gxy, cv::Size(3,3), 1);
-
 	imshow("resultsxy", Gxy);
 
+	//Trace of structure tensor
 	Mat trace;
 	add(Gxx, Gyy, trace);
-	Mat stTensor = Mat::zeros(2, 2, CV_32FC1);
-	stTensor.at<float>(0, 0) = sum(Gxx)[0];
-	stTensor.at<float>(0, 1) = sum(Gxy)[0];
-	stTensor.at<float>(1, 0) = sum(Gxy)[0];
-	stTensor.at<float>(1, 1) = sum(Gyy)[0];
-
-	//filter2D(img, img, -1, stTensor);
 	imshow("structure tensor", trace);
+
+	//Determinant of structure tensor
 	Mat de1, de2, determinant;
 	de1 = Gxx.mul(Gyy);
 	de2 = Gxy.mul(Gxy);
 	determinant = de1 - de2;
-
 	imshow("determinant", determinant);
+
+	//weight calculation
 	Mat weight = determinant / trace;
 	float meanW = mean(weight)[0];
-
-	imshow("weight", weight);
 	weight = nonMaxSuppression(weight);
 	threshold(weight, weight, 0.5*meanW, 1, THRESH_TOZERO);
 	imshow("weight", weight);
 	
+	//isotropy calculation
 	Mat iso;
 	iso = 4 * determinant / trace.mul(trace);
 	iso = nonMaxSuppression(iso);
 	threshold(iso, iso, 0.5, 255, THRESH_TOZERO);
 	imshow("iso", iso);
-//	threshold(iso, iso, 1, 255, THRESH_BINARY_INV);
-
-	
+		
+	//keypoints found
 	for (int i = 0; i < iso.rows; i++){
 		for (int j = 0; j < iso.cols; j++){
 			if (iso.at<float>(i, j)!=0&&weight.at<float>(i,j)!=0){
