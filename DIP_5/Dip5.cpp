@@ -18,10 +18,11 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 
 
 	Mat FstDevKernel = createFstDevKernel(sigma);
-	//Mat resultsImg = img.clone();
+	Mat resultsImg = img.clone();
 
 	//Calculate directional gradients
-	filter2D(img, img, -1, FstDevKernel);
+	filter2D(img, resultsImg, -1, FstDevKernel);
+	imshow("results", resultsImg);
 
 	//img = nonMaxSuppression(img)
 	
@@ -35,20 +36,21 @@ return	the calculated kernel
 Mat Dip5::createFstDevKernel(double sigma){
 	// TO DO !!!
 	int kSize = round(sigma * 3) * 2 - 1;
-
-	Mat kernel = getGaussianKernel(kSize, sigma, CV_32FC1);
+	//cout << "kernel size:" << kSize<<endl;
+	Mat gaussKernel = getGaussianKernel(kSize, sigma, CV_32FC1);
+	gaussKernel = gaussKernel * gaussKernel.t();
+	
 	Mat Gx = Mat::zeros(kSize, kSize, CV_32FC1);
 	Mat Gy = Mat::zeros(kSize, kSize, CV_32FC1);
 
 	for (int i = 0; i < kSize; i++){
-		for (int j = 0; j < kSize; j++){
-			Gx.at<float>(i, j) = -i / (sigma*sigma)*kernel.at<float>(i, j);
-			Gy.at<float>(i, j) = -j / (sigma*sigma)*kernel.at<float>(i, j);
+		for (int j = 0; j < kSize; j++){		
+			Gx.at<float>(i, j) = (-(i-1) / (sigma*sigma))*gaussKernel.at<float>(i, j);
+			//cout << (float)Gx.at<float>(i, j) << " ";
+			Gy.at<float>(i, j) = (-j / (sigma*sigma))*gaussKernel.at<float>(i, j);
 		}
-	}
-	//getDerivKernels(Gx, Gy, 1, 1, kSize);
-
-	return Gx;
+//		cout << endl;
+	}	return Gx;
 
 }
 
