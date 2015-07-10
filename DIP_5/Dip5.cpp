@@ -70,7 +70,7 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	for (int i = 0; i < iso.rows; i++){
 		for (int j = 0; j < iso.cols; j++){
 			if (iso.at<float>(i, j)!=0&&weight.at<float>(i,j)!=0){
-				points.push_back(KeyPoint(i, j, 3));
+				points.push_back(KeyPoint(j, i, 3));
 			}
 		}
 	}
