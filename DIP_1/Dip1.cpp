@@ -5,7 +5,7 @@
 // Copyright   : -
 // Description : 
 //============================================================================
-
+// That is the code I have updated 
 #include "Dip1.h"
 
 // function that splits an image and mirrors one side
